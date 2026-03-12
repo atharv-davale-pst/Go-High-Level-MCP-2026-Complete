@@ -649,15 +649,53 @@ docker run -p 8000:8000 \
 
 ## 🔌 Claude Desktop Integration
 
+### Quick Install
+
+```bash
+# 1. Clone and build
+git clone https://github.com/BusyBee3333/Go-High-Level-MCP-2026-Complete
+cd Go-High-Level-MCP-2026-Complete
+npm install
+npm run build
+
+# 2. Note the absolute path to dist/server.js for config below
+pwd
+```
+
 ### MCP Configuration
-Add to your Claude Desktop `mcp_settings.json`:
+
+Add to your Claude Desktop config file:
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "ghl-mcp-server": {
       "command": "node",
-      "args": ["path/to/ghl-mcp-server/dist/server.js"],
+      "args": ["/absolute/path/to/Go-High-Level-MCP-2026-Complete/dist/server.js"],
+      "env": {
+        "GHL_API_KEY": "your_private_integrations_api_key",
+        "GHL_BASE_URL": "https://services.leadconnectorhq.com",
+        "GHL_LOCATION_ID": "your_location_id"
+      }
+    }
+  }
+}
+```
+
+> **Tip:** Replace `/absolute/path/to/` with the actual full path from `pwd` above.
+
+### Cursor Configuration
+
+Add to `.cursor/mcp.json` in your project or `~/.cursor/mcp.json` globally:
+
+```json
+{
+  "mcpServers": {
+    "ghl-mcp-server": {
+      "command": "node",
+      "args": ["/absolute/path/to/Go-High-Level-MCP-2026-Complete/dist/server.js"],
       "env": {
         "GHL_API_KEY": "your_private_integrations_api_key",
         "GHL_BASE_URL": "https://services.leadconnectorhq.com",
@@ -864,6 +902,79 @@ git push origin feature/amazing-new-tool
 - Add JSDoc comments for all public methods
 - Implement proper error handling
 - Include integration tests
+
+## 🔗 Signet Integration
+
+[Signet](https://signet.sh) is a portable agent identity system that lets you store API credentials securely and share MCP server configurations across environments (Claude Code, Cursor, OpenCode, etc.).
+
+### Store your GHL credentials in Signet
+
+```bash
+signet secret put GHL_API_KEY
+signet secret put GHL_LOCATION_ID
+```
+
+### Retrieve at runtime
+
+```bash
+# Inject secrets into the MCP server at startup:
+GHL_API_KEY=$(signet secret get GHL_API_KEY) \
+GHL_LOCATION_ID=$(signet secret get GHL_LOCATION_ID) \
+node /path/to/dist/server.js
+```
+
+### Claude Desktop with Signet secrets
+
+```json
+{
+  "mcpServers": {
+    "ghl-mcp-server": {
+      "command": "sh",
+      "args": ["-c", "GHL_API_KEY=$(signet secret get GHL_API_KEY) GHL_LOCATION_ID=$(signet secret get GHL_LOCATION_ID) GHL_BASE_URL=https://services.leadconnectorhq.com node /absolute/path/to/dist/server.js"],
+      "env": {}
+    }
+  }
+}
+```
+
+### Signet agent.yaml snippet
+
+```yaml
+mcp_servers:
+  ghl-mcp-server:
+    command: node
+    args: ["/absolute/path/to/Go-High-Level-MCP-2026-Complete/dist/server.js"]
+    env:
+      GHL_API_KEY: "${signet:GHL_API_KEY}"
+      GHL_BASE_URL: "https://services.leadconnectorhq.com"
+      GHL_LOCATION_ID: "${signet:GHL_LOCATION_ID}"
+```
+
+### Remember your MCP config with Signet memory
+
+```bash
+signet remember "GHL MCP server at /path/to/Go-High-Level-MCP-2026-Complete" -t mcp,ghl,crm
+signet recall "GHL MCP"
+```
+
+For a full guide, see [SIGNET.md](SIGNET.md).
+
+---
+
+## 🚀 Managed Service
+
+**Don't want to manage this yourself?**
+
+- ✅ **Zero setup** — We handle everything
+- ✅ **Always up-to-date** — Latest features and security patches
+- ✅ **Priority support** — Real humans who know GHL and AI
+- ✅ **Enterprise-grade reliability** — 99.9% uptime, monitored 24/7
+
+**Need a hosted version? Contact [jake@localbosses.org](mailto:jake@localbosses.org)**
+
+Or [join the waitlist](https://mcp.localbosses.org) for our fully managed solution.
+
+---
 
 ## 📄 License
 
