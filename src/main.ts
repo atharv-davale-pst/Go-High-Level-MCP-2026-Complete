@@ -259,6 +259,19 @@ async function main() {
     log('info', 'SSE connection', { sessionId: String(sessionId) });
 
     try {
+      // Set headers for SSE with keepalive
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+
+      // Send keepalive comments every 15 seconds to prevent timeout
+      const keepaliveInterval = setInterval(() => {
+        if (!res.writableEnded) {
+          res.write(': keepalive\n\n');
+        }
+      }, 15000);
+
       // Create a fresh McpServer + SSE transport per connection
       // because SSE transport is stateful (one connection = one transport)
       const sseServer = new McpServer(
@@ -309,6 +322,7 @@ async function main() {
       await sseServer.connect(transport);
 
       req.on('close', () => {
+        clearInterval(keepaliveInterval);
         log('info', 'SSE connection closed', { sessionId: String(sessionId) });
       });
     } catch (err: any) {

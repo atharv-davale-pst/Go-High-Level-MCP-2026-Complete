@@ -1,0 +1,60 @@
+{
+  "name": "GHL Contact Search and SMS",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "position": [250, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-app.onrender.com/call-tool",
+        "options": {},
+        "bodyParametersJson": "{\n  \"name\": \"search_contacts\",\n  \"arguments\": {\n    \"query\": \"VIP\"\n  }\n}"
+      },
+      "name": "Search VIP Contacts",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300],
+      "typeVersion": 4.1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-app.onrender.com/call-tool",
+        "options": {},
+        "bodyParametersJson": "={\n  \"name\": \"send_sms\",\n  \"arguments\": {\n    \"contactId\": \"{{ $json.content[0].id }}\",\n    \"message\": \"Hi! We have a special offer for our VIP customers.\"\n  }\n}"
+      },
+      "name": "Send SMS to First Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 300],
+      "typeVersion": 4.1
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Search VIP Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search VIP Contacts": {
+      "main": [
+        [
+          {
+            "node": "Send SMS to First Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
